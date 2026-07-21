@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Apex Canada: Air Race</title>
+<!-- Apex Canada Air BUILD v25 : YYC airport ported onto v24 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Russo+One&display=swap" rel="stylesheet">
@@ -341,7 +342,42 @@ function makeCalgaryContext(rnd){
  /* Moving downtown traffic and bridges make the city read at jet speed. */
  const loop=[new THREE.Vector3(core.x-140,.2,core.z-102),new THREE.Vector3(core.x+140,.2,core.z-102),new THREE.Vector3(core.x+140,.2,core.z+102),new THREE.Vector3(core.x-140,.2,core.z+102)];addGroundVehicle(loop,.025,.16,"bus",0x2f6f9b);addGroundVehicle(loop,.034,.44,"car",0xe8d7b9);addGroundVehicle(loop,.031,.7,"car",0xbd3c33);addGroundVehicle(loop,.029,.88,"car",0x3f5968);for(const x of[-112,-52,12,74,128]){const bridge=new THREE.Mesh(new THREE.BoxGeometry(8,.55,48),new THREE.MeshStandardMaterial({color:0xb7b4a8,roughness:.84}));bridge.position.set(core.x+x,.34,core.z-154);world.add(bridge)}
 }
+function makeYYC(a,destination){
+ const g=new THREE.Group(),centre=a.start.clone().addScaledVector(a.tangent,a.length/2);g.position.copy(centre);g.position.y=.05;g.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),a.tangent);
+ const wet=ENV.weather==="rain"||ENV.weather==="storm",asphalt=new THREE.MeshStandardMaterial({color:wet?0x222d33:0x2c3438,roughness:wet?.3:.93,metalness:wet?.22:0}),apronMat=new THREE.MeshStandardMaterial({color:wet?0x3f484b:0x565e60,roughness:wet?.4:.97,metalness:wet?.15:0}),white=new THREE.MeshStandardMaterial({color:0xf1eee4,roughness:.75}),yellow=new THREE.MeshStandardMaterial({color:0xe4c44f,roughness:.72}),concrete=new THREE.MeshStandardMaterial({color:0x8f9695,roughness:.9}),taxiMat=new THREE.MeshStandardMaterial({color:0x474e50,roughness:.96}),L=a.length;
+ /* Runway builder: bed, centreline dashes, threshold bars, night-aware edge lamps. */
+ const strip=(x,len,wide,rot)=>{const r=new THREE.Group(),bed=new THREE.Mesh(new THREE.BoxGeometry(wide,.5,len),asphalt);bed.receiveShadow=true;r.add(bed);for(let z=-len/2+16;z<len/2-16;z+=18){const dash=new THREE.Mesh(new THREE.BoxGeometry(.75,.08,8),white);dash.position.set(0,.3,z);r.add(dash)}for(const tz of[-len/2+8,len/2-8])for(const bx of[-wide*.31,-wide*.19,-wide*.07,wide*.07,wide*.19,wide*.31]){const bar=new THREE.Mesh(new THREE.BoxGeometry(1.9,.1,11),white);bar.position.set(bx,.32,tz);r.add(bar)}for(const ex of[-wide/2+.5,wide/2-.5])for(let z=-len/2+5;z<len/2;z+=12){const lamp=new THREE.Mesh(new THREE.SphereGeometry(ENV.isDark?.34:.22,7,5),new THREE.MeshBasicMaterial({color:ENV.isDark?0x8ddcff:0xd9fbff}));lamp.position.set(ex,.5,z);r.add(lamp)}r.position.x=x;if(rot)r.rotation.y=rot;return r};
+ /* 17L/35R: the eastern strip flown here, YYC's longest runway. */
+ g.add(strip(0,L,29,0));
+ /* 17R/35L: the shorter western parallel. */
+ g.add(strip(-134,L*.82,27,0));
+ /* Crosswind runway crossing near the north thresholds. */
+ const cross=strip(-46,L*.6,25,Math.PI*.29);cross.position.z=46;g.add(cross);
+ /* Winter snow banks along the primary runway, matching the other fields. */
+ if(ENV.season==="winter")for(const bx of[-18.5,18.5]){const bank=new THREE.Mesh(new THREE.BoxGeometry(7,.8,L),new THREE.MeshStandardMaterial({color:0xe5e9e9,roughness:1}));bank.position.set(bx,.1,0);g.add(bank)}
+ /* Taxiway and connectors feeding the apron on the terminal side. */
+ const taxiA=new THREE.Mesh(new THREE.BoxGeometry(16,.32,L*.86),taxiMat);taxiA.position.set(26,.04,0);taxiA.receiveShadow=true;g.add(taxiA);const taxiLineA=new THREE.Mesh(new THREE.BoxGeometry(.35,.06,L*.8),yellow);taxiLineA.position.set(26,.22,0);g.add(taxiLineA);for(const z of[-L*.3,0,L*.3]){const cn=new THREE.Mesh(new THREE.BoxGeometry(26,.32,14),taxiMat);cn.position.set(14,.04,z);g.add(cn)}
+ /* The apron, a broad concrete slab carrying the gate stands. */
+ const apron=new THREE.Mesh(new THREE.BoxGeometry(96,.3,196),apronMat);apron.position.set(86,.06,0);apron.receiveShadow=true;g.add(apron);
+ /* Domestic terminal (1977) and the glass International terminal (2016), joined by the LINK corridor. */
+ const domestic=building(22,11,104,0x9aa6a8,false);domestic.position.set(118,0,34);g.add(domestic);
+ const intl=building(28,15,66,0x9fb9c2,true);intl.position.set(122,0,-52);g.add(intl);
+ const link=new THREE.Mesh(new THREE.BoxGeometry(8,5,24),new THREE.MeshStandardMaterial({color:0x8aa0a8,metalness:.2,roughness:.5}));link.position.set(120,4,-11);link.castShadow=true;g.add(link);
+ /* Concourse piers reaching onto the apron, with gate stands and jet-bridge stubs. */
+ for(let i=0;i<3;i++){const pz=48-i*46,pier=building(46,6,10,0xb4bebb,false);pier.rotation.y=Math.PI/2;pier.position.set(92,0,pz);g.add(pier);for(const gx of[74,80,86]){const st=new THREE.Mesh(new THREE.BoxGeometry(5,.12,5),concrete);st.position.set(gx,.24,pz-7);g.add(st);const br=new THREE.Mesh(new THREE.BoxGeometry(6,1.6,1.4),new THREE.MeshStandardMaterial({color:0x6f7d80,roughness:.7}));br.position.set(gx+3,2.4,pz-3);g.add(br)}}
+ /* A few parked airliners for ramp scale. */
+ for(const stand of[[70,40],[70,-6],[70,-52],[64,14]]){const px=stand[0],pz=stand[1],jet=new THREE.Group(),fus=new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,16,10),new THREE.MeshStandardMaterial({color:0xe9edee,roughness:.5,metalness:.2}));fus.rotation.z=Math.PI/2;fus.castShadow=true;jet.add(fus);const wing=new THREE.Mesh(new THREE.BoxGeometry(3,.4,20),new THREE.MeshStandardMaterial({color:0xd0d6d7,roughness:.6}));wing.position.y=-.2;wing.castShadow=true;jet.add(wing);const tf=new THREE.Mesh(new THREE.BoxGeometry(.4,4,3),new THREE.MeshStandardMaterial({color:0xcf3b33,roughness:.5}));tf.position.set(-7,2,0);tf.castShadow=true;jet.add(tf);jet.position.set(px,2.4,pz);jet.rotation.y=Math.PI/2;g.add(jet)}
+ /* Control tower overlooking the ramp. */
+ const towerBase=new THREE.Mesh(new THREE.CylinderGeometry(2.6,3.6,34,12),new THREE.MeshStandardMaterial({color:0xb6b9b4,roughness:.75}));towerBase.position.set(52,17,-4);towerBase.castShadow=true;g.add(towerBase);const cab=new THREE.Mesh(new THREE.CylinderGeometry(5.6,4.8,5,12),new THREE.MeshStandardMaterial({color:0x4f7180,metalness:.3,roughness:.28}));cab.position.set(52,36,-4);cab.castShadow=true;g.add(cab);const beacon=new THREE.Mesh(new THREE.SphereGeometry(.6,8,6),new THREE.MeshBasicMaterial({color:ENV.isDark?0xff7a4d:0xff5a4d}));beacon.position.set(52,39,-4);g.add(beacon);
+ /* Windsock at the threshold. */
+ const windPole=new THREE.Mesh(new THREE.CylinderGeometry(.12,.18,10,6),new THREE.MeshStandardMaterial({color:0xdedede}));windPole.position.set(20,5,80);g.add(windPole);const sock=new THREE.Mesh(new THREE.ConeGeometry(1.1,6,10,1,true),new THREE.MeshStandardMaterial({color:0xe34a3d,side:THREE.DoubleSide}));sock.rotation.z=-Math.PI/2;sock.position.set(23,9,80);g.add(sock);
+ world.add(g);
+ /* Apron service vehicles, consistent with the other airports. */
+ const svc=[a.start.clone().addScaledVector(a.tangent,42).addScaledVector(a.side,62),a.start.clone().addScaledVector(a.tangent,150).addScaledVector(a.side,62),a.start.clone().addScaledVector(a.tangent,150).addScaledVector(a.side,108),a.start.clone().addScaledVector(a.tangent,42).addScaledVector(a.side,108)];svc.forEach(p=>p.y=.3);addGroundVehicle(svc,.024,destination?.4:.1,"service",destination?0xf0b632:0xe35a36);addGroundVehicle(svc,.017,destination?.7:.4,"bus",destination?0x2f6e9d:0xd7d9d3);
+ const label=makeLabel(`${destination?"ARRIVAL \u00b7 ":""}${a.data.code} \u00b7 ${a.data.name}`),lp=a.start.clone().addScaledVector(a.tangent,36).addScaledVector(a.side,-52);label.position.copy(lp);label.position.y=34;label.scale.set(destination?58:52,9.7,1);world.add(label);labels.push(label);
+}
 function makeAirport(frame=airport,destination=false){
+ if(frame&&frame.data&&frame.data.code==="CYYC"){makeYYC(frame,destination);return}
  const a=frame,g=new THREE.Group(),centre=a.start.clone().addScaledVector(a.tangent,a.length/2);g.position.copy(centre);g.position.y=.05;g.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),a.tangent);
  const wet=ENV.weather==="rain"||ENV.weather==="storm",asphalt=new THREE.MeshStandardMaterial({color:wet?0x222d33:0x30383c,roughness:wet?.28:.92,metalness:wet?.23:0}),white=new THREE.MeshStandardMaterial({color:0xf1eee4,roughness:.75}),yellow=new THREE.MeshStandardMaterial({color:0xe4c44f,roughness:.72});
  const runway=new THREE.Mesh(new THREE.BoxGeometry(29,.55,a.length),asphalt);runway.receiveShadow=true;g.add(runway);
