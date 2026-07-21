@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Apex Canada: Air Race</title>
-<!-- Apex Canada Air BUILD v25 : YYC airport ported onto v24 -->
+<!-- Apex Canada Air BUILD v26 : YYC airport + Calgary-Banff Rockies loop -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Russo+One&display=swap" rel="stylesheet">
@@ -122,7 +122,7 @@ const CIRCUITS={
  stampede:{name:"Calgary Skyline Air Circuit",place:"Calgary, Alberta",scale:.115,city:true,airAlt:[[0,50],[.08,58],[.18,55],[.29,47],[.42,49],[.56,55],[.7,66],[.8,72],[.9,61],[1,50]],gateNames:["YYC Departure","Bow River Entry","Peace Bridge","Downtown West","Calgary Tower","Stampede Approach","Saddledome","East Village","Skyline Return","Foothills Turn","Rockies Vista","YYC Final"],ctrl:[[3600,250],[3450,520],[3000,650],[2400,560],[1750,360],[1150,300],[650,520],[700,900],[1050,1200],[1450,1600],[1950,1750],[2350,1600],[2600,1300],[2300,1050],[1900,950],[1550,1020],[1200,1200],[700,1450],[0,1650],[-850,1650],[-1450,1450],[-1250,1100],[-650,800],[150,650],[900,540],[1700,460],[2500,360],[3200,250]]},
  exhibition:{name:"Exhibition Street Circuit",place:"Toronto, Ontario",scale:.11,city:true,ctrl:[[620,1750],[900,2080],[1450,2260],[2150,2290],[2850,2230],[3550,2090],[4150,1850],[4600,1480],[4750,950],[4520,460],[4000,180],[3350,130],[2650,210],[1950,360],[1400,540],[950,760],[680,1150],[600,1480]]},
  transcanada:{name:"Trans-Canada Flight",place:"Victoria → Toronto",scale:.145,city:true,oneWay:true,crossCountry:true,gatesPerLoop:18,raceGateTarget:18,speedScale:.36,airAlt:[[0,58],[.08,72],[.18,112],[.3,105],[.45,86],[.62,82],[.78,91],[.9,76],[1,58]],gateNames:["Victoria Departure","Coast Mountains","Rockies West","Calgary Skyline","Alberta Prairie","Saskatchewan Reach","Manitoba Lakes","Lake Superior","Northern Ontario","Georgian Bay","Toronto Arrival"],ctrl:[[180,2100],[520,1980],[860,1690],[1160,1210],[1510,720],[1930,560],[2350,820],[2750,1160],[3150,980],[3540,1120],[3940,1460],[4350,1590],[4740,1460],[5120,1190],[5480,930],[5820,720],[6160,650]]},
- banff:{name:"Legacy Trail",place:"Banff, Alberta",scale:.145,climb:18,ctrl:[[560,2280],[1120,2360],[1700,2380],[2260,2340],[2740,2180],[3020,1900],[3080,1540],[2960,1220],[3060,880],[2900,560],[2520,400],[2040,360],[1560,380],[1080,350],[660,460],[400,760],[360,1160],[500,1500],[380,1840],[480,2080]]}
+ banff:{name:"Legacy Trail",place:"Banff, Alberta",scale:.145,climb:18,ctrl:[[560,2280],[1120,2360],[1700,2380],[2260,2340],[2740,2180],[3020,1900],[3080,1540],[2960,1220],[3060,880],[2900,560],[2520,400],[2040,360],[1560,380],[1080,350],[660,460],[400,760],[360,1160],[500,1500],[380,1840],[480,2080]]},rockies:{name:"Rockies Run",place:"Calgary → Banff",scale:.145,climb:18,ctrl:[[560,2280],[1120,2360],[1700,2380],[2260,2340],[2740,2180],[3020,1900],[3080,1540],[2960,1220],[3060,880],[2900,560],[2520,400],[2040,360],[1560,380],[1080,350],[660,460],[400,760],[360,1160],[500,1500],[380,1840],[480,2080]]}
 };
 const WATERS={
  harbour:[[[1050,660],[1900,530],[2330,710],[2390,1090],[2040,1300],[1300,1290],[1000,1010]],[[150,1210],[410,1260],[400,2080],[110,2160],[60,1300]],[[-900,2080],[520,2560],[3700,2720],[3700,4400],[-900,4400]]],
@@ -155,14 +155,14 @@ const AIRPORTS={
  stampede:{name:"Calgary International Airport",code:"CYYC",runway:"17L"},
  exhibition:{name:"Billy Bishop Toronto City Airport",code:"CYTZ",runway:"08"},
  transcanada:{name:"Victoria International Airport",code:"CYYJ",runway:"09",destinationName:"Toronto Pearson International Airport",destinationCode:"CYYZ",destinationRunway:"05"},
- banff:{name:"Springbank Airport",code:"CYBW",runway:"17"}
+ banff:{name:"Springbank Airport",code:"CYBW",runway:"17"},rockies:{name:"Calgary International Airport",code:"CYYC",runway:"17L"}
 };
 function L(x,z,type,name){return{x,z,type,name}} function R(t,off,type,name){return{roadT:t,roadOff:off,type,name}}
 
 const CAMERA_NAMES=["CHASE","PURSUIT","COCKPIT","WING","FLYBY"];
-const AUTO_SEASON={harbour:"spring",gorge:"spring",sidney:"spring",malahat:"spring",cordova:"spring",stampede:"summer",exhibition:"autumn",banff:"winter",transcanada:"summer"};
-const AUTO_WEATHER={harbour:"rain",gorge:"fog",sidney:"cloudy",malahat:"fog",cordova:"cloudy",stampede:"cloudy",exhibition:"haze",banff:"snow",transcanada:"clear"};
-const AUTO_TIME={harbour:"golden",gorge:"dawn",sidney:"day",malahat:"golden",cordova:"dawn",stampede:"golden",exhibition:"golden",banff:"dusk",transcanada:"day"};
+const AUTO_SEASON={harbour:"spring",gorge:"spring",sidney:"spring",malahat:"spring",cordova:"spring",stampede:"summer",exhibition:"autumn",banff:"winter",rockies:"summer",transcanada:"summer"};
+const AUTO_WEATHER={harbour:"rain",gorge:"fog",sidney:"cloudy",malahat:"fog",cordova:"cloudy",stampede:"cloudy",exhibition:"haze",banff:"snow",rockies:"clear",transcanada:"clear"};
+const AUTO_TIME={harbour:"golden",gorge:"dawn",sidney:"day",malahat:"golden",cordova:"dawn",stampede:"golden",exhibition:"golden",banff:"dusk",rockies:"golden",transcanada:"day"};
 const SEASON_STYLE={
  spring:{label:"Spring",ground:"#55774b",groundTint:0xb8c9aa,leaf:0x4b8648,fir:0x2b5c3b,skyTint:0xb9d8df,snowLine:.58},
  summer:{label:"Summer",ground:"#496c45",groundTint:0xb7c5a8,leaf:0x3c743f,fir:0x275538,skyTint:0x9fcde2,snowLine:.75},
@@ -213,7 +213,7 @@ function conditionName(e){return`${e.seasonLabel} · ${e.weatherLabel} · ${e.ti
 function updateConditionPreview(){const e=environmentFor(selected),c=CIRCUITS[selected],a=AIRPORTS[selected],mission=isCrossCountryMode()?"CROSS-COUNTRY":isWarMode()?"DOGFIGHT":"AIR RACE";ui.conditionPreview.textContent=conditionName(e);$("selectedCourseTag").textContent=c.crossCountry?`${a.code} → ${a.destinationCode}`:`${a.code} · ${c.place.split(",")[0]}`;$("launchCourse").textContent=`${aircraftName()} · ${mission} · ${c.name} · ${c.crossCountry?`${a.code} → ${a.destinationCode}`:a.code}`}
 
 Object.entries(CIRCUITS).forEach(([id,c])=>{const b=document.createElement("button");b.className="courseBtn"+(id===selected?" active":"");b.innerHTML=`<span>${AIRPORTS[id].code}</span><b>${c.name}</b><small>${c.place}</small>`;b.onclick=()=>selectCourse(id);b.dataset.id=id;ui.grid.appendChild(b)});
-function selectCourse(id){selected=id;location.hash=id;document.querySelectorAll(".courseBtn").forEach(b=>b.classList.toggle("active",b.dataset.id===id));if(id==="transcanada"){$("missionSelect").value="crosscountry";if(selectedAircraft()!=="darkstar"&&selectedAircraft()!=="raider")$("aircraftSelect").value="darkstar"}else if(isCrossCountryMode())$("missionSelect").value="race";updateMissionUI(true)}
+function selectCourse(id){selected=id;location.hash=id;document.querySelectorAll(".courseBtn").forEach(b=>b.classList.toggle("active",b.dataset.id===id));if(id==="rockies"){$("missionSelect").value="race";if(["darkstar","hornet","raider"].indexOf(selectedAircraft())<0)$("aircraftSelect").value="darkstar"}else if(id==="transcanada"){$("missionSelect").value="crosscountry";if(selectedAircraft()!=="darkstar"&&selectedAircraft()!=="raider")$("aircraftSelect").value="darkstar"}else if(isCrossCountryMode())$("missionSelect").value="race";updateMissionUI(true)}
 $("flyBtn").onclick=()=>startFlight(selected);$("resumeBtn").onclick=togglePause;$("restartBtn").onclick=()=>{togglePause();startFlight(selected)};$("againBtn").onclick=()=>startFlight(selected);$("coursesBtn").onclick=showCourseMenu;ui.cameraBtn.onclick=cycleCamera;
 document.querySelectorAll(".aircraftCard").forEach(card=>card.addEventListener("click",()=>{$("aircraftSelect").value=card.dataset.aircraft;updateMissionUI(true)}));
 [$("seasonSelect"),$("weatherSelect"),$("timeSelect"),$("conditionsSelect")].forEach(el=>el.addEventListener("change",updateConditionPreview));[$("aircraftSelect"),$("missionSelect")].forEach(el=>el.addEventListener("change",()=>updateMissionUI(true)));if(selected==="transcanada")$("missionSelect").value="crosscountry";updateMissionUI(false);
@@ -266,10 +266,10 @@ function seeded(seed){let s=seed>>>0;return()=>((s=Math.imul(1664525,s)+10139042
 function distanceToCourse(p){let d=1e9;for(let i=0;i<100;i++){const q=curve.getPointAt(i/100);d=Math.min(d,q.distanceToSquared(p))}return Math.sqrt(d)}
 function distanceToRunway(p){const v=p.clone().sub(airport.start),along=THREE.MathUtils.clamp(v.dot(airport.tangent),0,airport.length),q=airport.start.clone().addScaledVector(airport.tangent,along);return q.distanceTo(p)}
 function makeContext(){
- const rnd=seeded([...selected].reduce((a,c)=>a+c.charCodeAt(0),0)*9871);if(selected==="transcanada")makeTransCanadaContext(rnd);else if(selected==="stampede")makeCalgaryContext(rnd);else if(selected==="exhibition")makeTorontoContext(rnd);else if(selected==="harbour"||selected==="gorge")makeVictoriaContext(rnd);else if(selected==="sidney"||selected==="cordova")makePeninsulaContext(rnd);else if(selected==="banff")makeBanffContext(rnd);else{
+ const rnd=seeded([...selected].reduce((a,c)=>a+c.charCodeAt(0),0)*9871);if(selected==="transcanada")makeTransCanadaContext(rnd);else if(selected==="stampede")makeCalgaryContext(rnd);else if(selected==="exhibition")makeTorontoContext(rnd);else if(selected==="harbour"||selected==="gorge")makeVictoriaContext(rnd);else if(selected==="sidney"||selected==="cordova")makePeninsulaContext(rnd);else if(selected==="banff"||selected==="rockies")makeBanffContext(rnd);else{
   for(let i=0;i<260;i++){const p=new THREE.Vector3((rnd()-.5)*620,0,(rnd()-.5)*560);if(distanceToCourse(p)<14||distanceToRunway(p)<43||nearLandmark(p,15))continue;const tree=makeTree(5+rnd()*9,rnd()>.18);tree.position.copy(p);world.add(tree)}
  }
- if(selected==="malahat"||selected==="banff"||selected==="cordova"){for(let i=0;i<9;i++){const ang=i/9*Math.PI*2,r=360+(i%3)*35;const peak=makeMountain(95+(i%4)*28,95+(i%3)*28);peak.position.set(Math.cos(ang)*r,-2,Math.sin(ang)*r);world.add(peak)}}
+ if(selected==="malahat"||selected==="banff"||selected==="cordova"||selected==="rockies"){for(let i=0;i<9;i++){const ang=i/9*Math.PI*2,r=360+(i%3)*35;const peak=makeMountain(95+(i%4)*28,95+(i%3)*28);peak.position.set(Math.cos(ang)*r,-2,Math.sin(ang)*r);world.add(peak)}}
 }
 function addCityBuilding(p,w,h,d,color,glass=false,name="City building",roof=false){const b=building(w,h,d,color,glass);b.position.copy(p);world.add(b);if(roof){const cap=new THREE.Mesh(new THREE.ConeGeometry(w*.68,Math.min(8,h*.35),4),new THREE.MeshStandardMaterial({color:0x4d5554,roughness:.82}));cap.scale.z=d/w;cap.rotation.y=Math.PI/4;cap.position.copy(p).add(new THREE.Vector3(0,h+Math.min(8,h*.35)*.46,0));world.add(cap)}colliders.push({position:p.clone(),radius:Math.hypot(w,d)*.46,height:h+(roof?6:2),name,kind:"building"})}
 function makeGroundVehicle(type="car",color=0xd43f35){
