@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Apex Canada: Air Race</title>
-<!-- Apex Canada Air BUILD v26 : YYC airport + Calgary-Banff Rockies loop -->
+<!-- Apex Canada Air BUILD v27 : mountains kept clear of runways (+v26) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Russo+One&display=swap" rel="stylesheet">
@@ -265,11 +265,12 @@ function makeTrack(){
 function seeded(seed){let s=seed>>>0;return()=>((s=Math.imul(1664525,s)+1013904223>>>0)/4294967296)}
 function distanceToCourse(p){let d=1e9;for(let i=0;i<100;i++){const q=curve.getPointAt(i/100);d=Math.min(d,q.distanceToSquared(p))}return Math.sqrt(d)}
 function distanceToRunway(p){const v=p.clone().sub(airport.start),along=THREE.MathUtils.clamp(v.dot(airport.tangent),0,airport.length),q=airport.start.clone().addScaledVector(airport.tangent,along);return q.distanceTo(p)}
+function keepClearOfRunways(p,clearance){for(const fr of[airport,destinationAirport]){if(!fr)continue;const v=p.clone().sub(fr.start),along=THREE.MathUtils.clamp(v.dot(fr.tangent),0,fr.length),q=fr.start.clone().addScaledVector(fr.tangent,along),away=p.clone().sub(q);away.y=0;const d=away.length();if(d<clearance){const y=p.y;if(d<1e-3)away.copy(fr.side);away.normalize();p.copy(q).addScaledVector(away,clearance);p.y=y}}}
 function makeContext(){
  const rnd=seeded([...selected].reduce((a,c)=>a+c.charCodeAt(0),0)*9871);if(selected==="transcanada")makeTransCanadaContext(rnd);else if(selected==="stampede")makeCalgaryContext(rnd);else if(selected==="exhibition")makeTorontoContext(rnd);else if(selected==="harbour"||selected==="gorge")makeVictoriaContext(rnd);else if(selected==="sidney"||selected==="cordova")makePeninsulaContext(rnd);else if(selected==="banff"||selected==="rockies")makeBanffContext(rnd);else{
   for(let i=0;i<260;i++){const p=new THREE.Vector3((rnd()-.5)*620,0,(rnd()-.5)*560);if(distanceToCourse(p)<14||distanceToRunway(p)<43||nearLandmark(p,15))continue;const tree=makeTree(5+rnd()*9,rnd()>.18);tree.position.copy(p);world.add(tree)}
  }
- if(selected==="malahat"||selected==="banff"||selected==="cordova"||selected==="rockies"){for(let i=0;i<9;i++){const ang=i/9*Math.PI*2,r=360+(i%3)*35;const peak=makeMountain(95+(i%4)*28,95+(i%3)*28);peak.position.set(Math.cos(ang)*r,-2,Math.sin(ang)*r);world.add(peak)}}
+ if(selected==="malahat"||selected==="banff"||selected==="cordova"||selected==="rockies"){for(let i=0;i<9;i++){const ang=i/9*Math.PI*2,r=360+(i%3)*35;const peak=makeMountain(95+(i%4)*28,95+(i%3)*28);peak.position.set(Math.cos(ang)*r,-2,Math.sin(ang)*r);keepClearOfRunways(peak.position,240);world.add(peak)}}
 }
 function addCityBuilding(p,w,h,d,color,glass=false,name="City building",roof=false){const b=building(w,h,d,color,glass);b.position.copy(p);world.add(b);if(roof){const cap=new THREE.Mesh(new THREE.ConeGeometry(w*.68,Math.min(8,h*.35),4),new THREE.MeshStandardMaterial({color:0x4d5554,roughness:.82}));cap.scale.z=d/w;cap.rotation.y=Math.PI/4;cap.position.copy(p).add(new THREE.Vector3(0,h+Math.min(8,h*.35)*.46,0));world.add(cap)}colliders.push({position:p.clone(),radius:Math.hypot(w,d)*.46,height:h+(roof?6:2),name,kind:"building"})}
 function makeGroundVehicle(type="car",color=0xd43f35){
@@ -311,7 +312,7 @@ function makeTransCanadaContext(rnd){
  /* Victoria harbour departure. */
  const west=routeFrame(.035),victoria=west.p.clone().addScaledVector(west.side,-72);victoria.y=0;for(let x=-2;x<=2;x++)for(let z=-2;z<=2;z++){const p=victoria.clone().add(new THREE.Vector3(x*14,0,z*15));addCityBuilding(p,8+rnd()*5,6+rnd()*10,9+rnd()*6,rnd()>.5?0xb68c70:0x87979b,rnd()>.62,"Victoria building",rnd()>.52)}
  /* Coast Mountains and Rockies create a continuous western wall with clear flight corridors. */
- for(let i=0;i<13;i++){const t=.14+i*.014,f=routeFrame(t),peak=makeMountain(72+(i%4)*18,55+(i%3)*12,910+i,true);peak.position.copy(f.p).addScaledVector(f.side,(i%2?1:-1)*(68+(i%3)*22));peak.position.y=-2;world.add(peak)}for(let i=0;i<12;i++){const t=.24+i*.013,f=routeFrame(t),peak=makeMountain(90+(i%5)*17,64+(i%3)*15,1010+i,true);peak.position.copy(f.p).addScaledVector(f.side,(i%2?1:-1)*(76+(i%4)*19));peak.position.y=-2;world.add(peak)}
+ for(let i=0;i<13;i++){const t=.14+i*.014,f=routeFrame(t),peak=makeMountain(72+(i%4)*18,55+(i%3)*12,910+i,true);peak.position.copy(f.p).addScaledVector(f.side,(i%2?1:-1)*(68+(i%3)*22));peak.position.y=-2;keepClearOfRunways(peak.position,240);world.add(peak)}for(let i=0;i<12;i++){const t=.24+i*.013,f=routeFrame(t),peak=makeMountain(90+(i%5)*17,64+(i%3)*15,1010+i,true);peak.position.copy(f.p).addScaledVector(f.side,(i%2?1:-1)*(76+(i%4)*19));peak.position.y=-2;keepClearOfRunways(peak.position,240);world.add(peak)}
  /* Calgary skyline and a Bow River ribbon. */
  const cf=routeFrame(.35),calgary=cf.p.clone().addScaledVector(cf.side,-70);calgary.y=0;for(let i=0;i<42;i++){const p=calgary.clone().add(new THREE.Vector3((rnd()-.5)*145,0,(rnd()-.5)*110));const central=Math.max(0,1-p.distanceTo(calgary)/90),h=8+rnd()*18+central*rnd()*42;if(p.distanceTo(cf.p)<31)continue;addCityBuilding(p,8+rnd()*10,h,9+rnd()*10,rnd()>.55?0x7e949b:0xa28f78,rnd()>.42,"Calgary building",false)}const river=new THREE.Mesh(new THREE.BoxGeometry(185,.16,12),new THREE.MeshStandardMaterial({color:0x4a8ba1,roughness:.35,metalness:.12}));river.position.set(calgary.x,.08,calgary.z+64);river.rotation.y=.18;world.add(river);
  /* Prairie fields, grain elevators and service roads fill the long middle sectors. */
@@ -336,9 +337,9 @@ function makeCalgaryContext(rnd){
  /* Mature Bow River pathway trees and parkland frame the north edge of downtown. */
  for(let x=280;x<=2780;x+=115){for(const z of[95,405]){const p=rawToWorld(x+(rnd()-.5)*45,z+(rnd()-.5)*18);if(distanceToCourse(p)<9||distanceToRunway(p)<25)continue;const t=makeTree(7+rnd()*5,false);t.position.copy(p);world.add(t)}}
  /* The Rockies belong on Calgary's western horizon, never as a ring around the city. */
- for(let i=0;i<12;i++){const peak=makeMountain(108+(i%4)*23,94+(i%3)*19,410+i,true);peak.position.set(-505-(i%3)*42,-2,-350+i*64);peak.rotation.y=(i%2?.22:-.16);peak.scale.z=.82+(i%3)*.1;world.add(peak)}
+ for(let i=0;i<12;i++){const peak=makeMountain(108+(i%4)*23,94+(i%3)*19,410+i,true);peak.position.set(-505-(i%3)*42,-2,-350+i*64);keepClearOfRunways(peak.position,240);peak.rotation.y=(i%2?.22:-.16);peak.scale.z=.82+(i%3)*.1;world.add(peak)}
  /* A separate, greener foothill layer prevents the snow line from meeting the prairie abruptly. */
- for(let i=0;i<9;i++){const hill=makeMountain(32+(i%3)*8,92+(i%2)*18,720+i,false);hill.position.set(-355-(i%2)*24,-2,-330+i*82);hill.scale.z=1.25;world.add(hill)}
+ for(let i=0;i<9;i++){const hill=makeMountain(32+(i%3)*8,92+(i%2)*18,720+i,false);hill.position.set(-355-(i%2)*24,-2,-330+i*82);keepClearOfRunways(hill.position,240);hill.scale.z=1.25;world.add(hill)}
  /* Moving downtown traffic and bridges make the city read at jet speed. */
  const loop=[new THREE.Vector3(core.x-140,.2,core.z-102),new THREE.Vector3(core.x+140,.2,core.z-102),new THREE.Vector3(core.x+140,.2,core.z+102),new THREE.Vector3(core.x-140,.2,core.z+102)];addGroundVehicle(loop,.025,.16,"bus",0x2f6f9b);addGroundVehicle(loop,.034,.44,"car",0xe8d7b9);addGroundVehicle(loop,.031,.7,"car",0xbd3c33);addGroundVehicle(loop,.029,.88,"car",0x3f5968);for(const x of[-112,-52,12,74,128]){const bridge=new THREE.Mesh(new THREE.BoxGeometry(8,.55,48),new THREE.MeshStandardMaterial({color:0xb7b4a8,roughness:.84}));bridge.position.set(core.x+x,.34,core.z-154);world.add(bridge)}
 }
